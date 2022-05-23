@@ -21,10 +21,29 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 const run = async()=>{
     try{
         await client.connect();
-        console.log("db connected")
+        const products = client.db('furnitures').collection('parts');
+        
+        //GET ALL TOOLS
+        app.get('/alltools',async(req,res)=>{
+            query={};
+            const cursor = products.find(query);
+            const result= await cursor.toArray();
+            res.send(result);
+            });
+        //GET A SINGLE TOOL BY ID
+        app.get('/tool/:id',async(req,res)=>{
+                try{
+                const id = req?.params?.id
+                const query = {_id:ObjectId(id)}
+                const result = await products.findOne(query)
+                res.send(result);
+                }
+                catch{
+                    res.send({})
+                }
+            });
     }
     finally{
-
     }
 }
 run().catch(console.dir);
