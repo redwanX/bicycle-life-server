@@ -42,6 +42,7 @@ const run = async()=>{
         const products = client.db('parts').collection('parts');
         const users = client.db('parts').collection('users');
         const order = client.db('parts').collection('order');
+        const reviews = client.db('parts').collection('reviews');
         
         //GET ALL PARTS
         app.get('/allparts',async(req,res)=>{
@@ -75,7 +76,7 @@ const run = async()=>{
             const token = jwt.sign({ email: email }, process.env.JWT_SECRET, { expiresIn: '1d' })
             res.send({ result, token });
           });
-
+        //ADD ORDER
         app.post('/order',JWTverify,async(req,res)=>{
             try{
             const data= req.body;
@@ -90,6 +91,44 @@ const run = async()=>{
             }
             catch{
                 res.send({message:"something went wrong"})
+            }
+        });
+
+
+        //ADD REVIEW
+        app.post('/review',JWTverify,async(req,res)=>{
+            try{
+            const data= req.body;
+            if(data.email === req.decoded.email){
+            const result = await reviews.insertOne(data)
+            res.send(result);
+            }
+            else{
+                return res.status(401).send({message:"Unauthorized"});
+            }
+            }
+            catch{
+                res.send({message:"something went wrong"})
+            }
+        });
+
+        //GET ORDER BY EMAIL
+        app.get('/order',JWTverify,async(req,res)=>{
+            const decodedEmail=req?.decoded?.email;
+            const QueryEmail = req?.query?.email;
+            if(decodedEmail === QueryEmail){
+            if(QueryEmail){
+                const query={email:QueryEmail};
+                const cursor = order.find(query);
+                const result= await cursor.toArray();
+                res.send(result);
+            }
+            else{
+                res.send([]);
+            }
+            }
+            else{
+                res.status(403).send({message:"Forbidden Access!"});
             }
         });
 
