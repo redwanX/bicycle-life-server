@@ -15,6 +15,24 @@ app.get('/',(req,res)=>{
     res.send("server is running");
 })
 
+//JWT VERIFICATION MIDDLEWARE
+function JWTverify(req, res, next) {
+    const header = req.headers.authorization;
+    if (!header) {
+      return res.status(401).send({message:"Unauthorized"});
+    }
+    const token = header.split(' ')[1];
+    jwt.verify(token,process.env.JWT_SECRET,(err, decoded)=> {
+      if (err) {
+        return res.status(403).send({message:"Forbidden"})
+      }
+      req.decoded = decoded;
+      next();
+    });
+  }
+
+
+
 //MONGODB CONNECTION
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.uttsl.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
@@ -23,6 +41,7 @@ const run = async()=>{
         await client.connect();
         const products = client.db('parts').collection('parts');
         const users = client.db('parts').collection('users');
+        const order = client.db('parts').collection('order');
         
         //GET ALL PARTS
         app.get('/allparts',async(req,res)=>{
@@ -54,9 +73,26 @@ const run = async()=>{
             };
             const result = await users.updateOne(filter, updateDoc, options);
             const token = jwt.sign({ email: email }, process.env.JWT_SECRET, { expiresIn: '1d' })
-            console.log(token);
             res.send({ result, token });
           });
+
+        app.post('/order',JWTverify,async(req,res)=>{
+            try{
+            const data= req.body;
+            if(data.email === req.decoded.email){
+            data.status="unpaid";
+            const result = await order.insertOne(data)
+            res.send(result);
+            }
+            else{
+                return res.status(401).send({message:"Unauthorized"});
+            }
+            }
+            catch{
+                res.send({message:"something went wrong"})
+            }
+        });
+
     }
     finally{
     }
