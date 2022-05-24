@@ -76,6 +76,32 @@ const run = async()=>{
             const token = jwt.sign({ email: email }, process.env.JWT_SECRET, { expiresIn: '1d' })
             res.send({ result, token });
           });
+
+        //UPDATE PROFILE
+        app.put('/updateProfile',JWTverify,async(req, res) => {
+            try{
+                const user= req.body;
+                if(data.email === req.decoded.email){
+                    const email = user.email;
+                    const filter = { email: email };
+                    const options = { upsert: true };
+                    const updateDoc = {
+                      $set: user,
+                    };
+                    const result = await users.updateOne(filter, updateDoc, options);            
+                res.send(result);
+                }
+                else{
+                    return res.status(401).send({message:"Unauthorized"});
+                }
+            }
+            catch{
+                    res.send({message:"something went wrong"})
+                }
+
+        });
+
+        
         //ADD ORDER
         app.post('/order',JWTverify,async(req,res)=>{
             try{
