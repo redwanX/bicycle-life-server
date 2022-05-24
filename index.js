@@ -81,25 +81,39 @@ const run = async()=>{
         app.put('/updateProfile',JWTverify,async(req, res) => {
             try{
                 const user= req.body;
-                if(data.email === req.decoded.email){
+                if(user.email === req.decoded.email){
                     const email = user.email;
+                    delete user._id
                     const filter = { email: email };
                     const options = { upsert: true };
                     const updateDoc = {
                       $set: user,
                     };
                     const result = await users.updateOne(filter, updateDoc, options);            
-                res.send(result);
+                    res.send(result);
                 }
                 else{
                     return res.status(401).send({message:"Unauthorized"});
                 }
             }
-            catch{
+                catch{
                     res.send({message:"something went wrong"})
                 }
 
         });
+
+        //GET PROFILE DATA
+        app.get('/profile/:email',async(req,res)=>{
+            try{
+                const email = req?.params?.email;
+                const query = {email:email}
+                const result = await users.findOne(query)
+                res.send(result);
+            }
+            catch{
+                res.send({message:"something went wrong"})
+            }
+        })
 
         
         //ADD ORDER
@@ -155,6 +169,24 @@ const run = async()=>{
             }
             else{
                 res.status(403).send({message:"Forbidden Access!"});
+            }
+        });
+
+        //DETE ORDER
+        app.delete('/order/:id',JWTverify,async(req,res)=>{
+            try{
+                const id=req.params.id;
+            if(id){
+                const query = {_id:ObjectId(id)};
+                const result = await order.deleteOne(query);
+                res.send(result);
+            }
+            else{
+                res.send({message:"something went wrong"})
+            }
+            }
+            catch{
+                res.send({message:"something went wrong"});
             }
         });
 
