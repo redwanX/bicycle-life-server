@@ -45,6 +45,51 @@ const run = async()=>{
         const order = client.db('parts').collection('order');
         const reviews = client.db('parts').collection('reviews');
         
+        //ADMIN
+        const verifyAdmin = async (req, res, next) => {
+            const requester = req.decoded.email;
+            const requesterAccount = await users.findOne({ email: requester });
+            if (requesterAccount.role === 'admin') {
+              next();
+            }
+            else {
+              res.status(403).send({ message: 'Forbidden Access' });
+            }
+          }
+        
+        app.get('/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = await users.findOne({ email: email });
+            const admin = user.role === 'admin';
+            res.send({ admin })
+          })
+      
+        app.put('/user/admin/:email', JWTverify, verifyAdmin, async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email };
+            const updateDoc = {
+              $set: { role: 'admin' },
+            };
+            const result = await users.updateOne(filter, updateDoc);
+            res.send(result);
+          })
+
+
+          app.get('/users',JWTverify,async(req,res)=>{
+            query={};
+            const cursor = users.find(query);
+            const result= await cursor.toArray();
+            res.send(result);
+            });
+        
+
+
+
+
+
+
+
+
         //GET ALL PARTS
         app.get('/allparts',async(req,res)=>{
             query={};
@@ -203,7 +248,6 @@ const run = async()=>{
                     const id=req.params.id;
                     orderBody.status="paid";
                     delete orderBody._id;
-                    console.log(id);
                     const filter = {_id:ObjectId(id)};
                     const options = { upsert: true };
                     const updateDoc = {
