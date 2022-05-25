@@ -74,7 +74,7 @@ const run = async()=>{
             res.send(result);
           })
 
-
+          //GET ALL USERS
           app.get('/users',JWTverify,async(req,res)=>{
             query={};
             const cursor = users.find(query);
@@ -84,8 +84,43 @@ const run = async()=>{
         
 
 
+        // ADD PARTS
+        app.post('/addProduct',JWTverify,verifyAdmin,async (req,res)=>{
+                const result = await products.insertOne(req.body);
+                res.send(result);
+        });
+
+        // DELETE PARTS BY ID
+        app.delete('/deleteItem/:id',JWTverify,verifyAdmin,async(req,res)=>{
+            try{
+                const id=req.params.id;
+            if(id){
+                const query = {_id:ObjectId(id)};
+                const result = await products.deleteOne(query);
+                res.send(result);
+            }
+            else{
+                res.send({message:"something went wrong"});
+            }
+            }
+            catch{
+                res.send({message:"something went wrong"});
+            }
+        });
 
 
+        //GET ALL ORDERS
+        app.get('/allorder',JWTverify,verifyAdmin,async(req,res)=>{
+            try{
+                const query={};
+                const cursor = order.find(query);
+                const result= await cursor.toArray();
+                res.send(result);
+            }
+            catch{
+                res.send({message:"something went wrong"});
+            }
+        });
 
 
 
@@ -97,6 +132,8 @@ const run = async()=>{
             const result= await cursor.toArray();
             res.send(result);
             });
+
+
         //GET A SINGLE PART BY ID
         app.get('/part/:id',async(req,res)=>{
                 try{
@@ -246,8 +283,6 @@ const run = async()=>{
                 let orderBody= req.body;
                 if(orderBody.email === req.decoded.email){
                     const id=req.params.id;
-                    orderBody.status="paid";
-                    delete orderBody._id;
                     const filter = {_id:ObjectId(id)};
                     const options = { upsert: true };
                     const updateDoc = {
