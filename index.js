@@ -5,6 +5,7 @@ require('dotenv').config();
 const jwt = require("jsonwebtoken");
 const port = process.env.PORT||5000;
 const app = express();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 //middleware
 app.use(cors());
@@ -181,7 +182,7 @@ const run = async()=>{
         });
 
 
-   //GET ORDER BY EMAIL
+        //GET ORDER BY ID
         app.get('/orderById/:id',JWTverify,async(req,res)=>{
             try{
                 const id = req?.params?.id
@@ -193,6 +194,34 @@ const run = async()=>{
                     res.send({})
                 }
         });
+
+        //UPDATE ORDER BY ID
+        app.put('/updateOrder/:id',JWTverify,async(req, res) => {
+            try{
+                let orderBody= req.body;
+                if(orderBody.email === req.decoded.email){
+                    const id=req.params.id;
+                    orderBody.status="paid";
+                    delete orderBody._id;
+                    console.log(id);
+                    const filter = {_id:ObjectId(id)};
+                    const options = { upsert: true };
+                    const updateDoc = {
+                      $set: orderBody,
+                    };
+                    const result = await order.updateOne(filter, updateDoc, options);            
+                    res.send(result);
+                }
+                else{
+                    return res.status(401).send({message:"Unauthorized"});
+                }
+            }
+                catch{
+                    res.send({message:"something went wrong"})
+                }
+
+        });
+
 
         //DETE ORDER
         app.delete('/order/:id',JWTverify,async(req,res)=>{
@@ -211,6 +240,22 @@ const run = async()=>{
                 res.send({message:"something went wrong"});
             }
         });
+
+
+
+        //PAYMENT APIES
+
+        app.post('/create-payment-intent', JWTverify, async(req, res) =>{
+            const order = req.body;
+            const price = order.price;
+            const amount = parseInt(price)*100;
+            const paymentIntent = await stripe.paymentIntents.create({
+              amount : amount,
+              currency: 'usd',
+              payment_method_types:['card']
+            });
+            res.send({clientSecret: paymentIntent.client_secret})
+          });
 
     }
     finally{
