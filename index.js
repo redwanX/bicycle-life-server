@@ -152,6 +152,14 @@ const run = async()=>{
             }
         });
 
+        //GET ALL REVIEW
+        app.get('/review',async(req,res)=>{
+            query={};
+            const cursor = reviews.find(query);
+            const result= await cursor.toArray();
+            res.send(result);
+            });
+
         //GET ORDER BY EMAIL
         app.get('/order',JWTverify,async(req,res)=>{
             const decodedEmail=req?.decoded?.email;
@@ -170,6 +178,20 @@ const run = async()=>{
             else{
                 res.status(403).send({message:"Forbidden Access!"});
             }
+        });
+
+
+   //GET ORDER BY EMAIL
+        app.get('/orderById/:id',JWTverify,async(req,res)=>{
+            try{
+                const id = req?.params?.id
+                const query = {_id:ObjectId(id)}
+                const result = await order.findOne(query)
+                res.send(result);
+                }
+                catch{
+                    res.send({})
+                }
         });
 
         //DETE ORDER
