@@ -44,7 +44,13 @@ const run = async()=>{
         const users = client.db('parts').collection('users');
         const order = client.db('parts').collection('order');
         const reviews = client.db('parts').collection('reviews');
-        
+        const quote = client.db('parts').collection('quote');
+
+        //add quote
+        app.post('/quote',async(req,res)=>{
+            const result = await quote.insertOne(req.body);
+            res.send(result);
+        });
         //ADMIN
         const verifyAdmin = async (req, res, next) => {
             const requester = req.decoded.email;
