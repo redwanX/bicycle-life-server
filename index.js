@@ -289,6 +289,7 @@ const run = async()=>{
                 let orderBody= req.body;
                 if(orderBody.email === req.decoded.email){
                     const id=req.params.id;
+                    delete orderBody.email
                     const filter = {_id:ObjectId(id)};
                     const options = { upsert: true };
                     const updateDoc = {
