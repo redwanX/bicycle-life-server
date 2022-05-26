@@ -7,7 +7,7 @@
 ### SERVER SIDE : https://serene-meadow-57507.herokuapp.com/
 
 ## SHORT DISCREPTION
-this website is for a bicycle parts manufecturar. where wholesell buyer can buy parts in bulk ammount.
+THIS WEBSITE IS FOR BYCICLE PARTS MANUFACTURER, WHERE USER CAN COME AND ORDER A PRODUCT IN BULK AMMOUNT!
 
 ## FEATURES AND FUNCTIONALITIES
 ### USER SIDE

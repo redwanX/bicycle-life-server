@@ -64,10 +64,15 @@ const run = async()=>{
           }
         
         app.get('/admin/:email', async (req, res) => {
-            const email = req.params.email;
-            const user = await users.findOne({ email: email });
-            const admin = user.role === 'admin';
-            res.send({ admin })
+            try{
+                const email = req.params.email;
+                const user = await users.findOne({ email: email });
+                const admin = user.role === 'admin';
+                res.send({ admin })
+            }
+            catch{
+                res.send({admin:false})
+            }
           })
       
         app.put('/user/admin/:email', JWTverify, verifyAdmin, async (req, res) => {
@@ -81,7 +86,7 @@ const run = async()=>{
           })
 
           //GET ALL USERS
-          app.get('/users',JWTverify,async(req,res)=>{
+          app.get('/users',JWTverify,verifyAdmin,async(req,res)=>{
             query={};
             const cursor = users.find(query);
             const result= await cursor.toArray();
@@ -192,7 +197,7 @@ const run = async()=>{
         });
 
         //GET PROFILE DATA
-        app.get('/profile/:email',async(req,res)=>{
+        app.get('/profile/:email',JWTverify,async(req,res)=>{
             try{
                 const email = req?.params?.email;
                 const query = {email:email}
