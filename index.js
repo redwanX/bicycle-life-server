@@ -8,7 +8,12 @@ const app = express();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 //middleware
-app.use(cors({origin: 'https://bicycle-life.web.app/'}));
+const corsConfig = {
+    origin: true,
+    credentials: true,
+    }
+    app.use(cors(corsConfig))
+    app.options('*', cors(corsConfig))
 app.use(express.json());
 
 // Index
